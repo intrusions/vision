@@ -1,0 +1,3 @@
+[submodule "usermode/libs/dma-library"]
+	path = usermode/libs/dma-library
+	url = git@github.com:intrusions/dma-library.git

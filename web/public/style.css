@@ -1,0 +1,22 @@
+.leaflet-control-attribution {
+    display: none !important;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #0d0d0d;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+#map {
+    width: 80vw;
+    height: 80vh;
+    border: 2px solid #222;
+    border-radius: 10px;
+}
