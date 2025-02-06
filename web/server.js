@@ -4,7 +4,7 @@ const { Server } = require("socket.io");
 const http = require("http");
 const path = require("path");
 
-let current_map_name = "default_map";
+let current_map_name = "default";
 
 /*
 * @Brief Creat a local web server on port 3000
@@ -30,7 +30,7 @@ io.on("connection", (socket) => {
 app.use(express.static("public"));
 app.use("/map", express.static(path.join(__dirname, "map")));
 
-web_server.listen(3000, "127.0.0.1", () => {
+web_server.listen(3000, "0.0.0.0", () => {
     console.log("web server successfully started: http://127.0.0.1:3000");
 });
 

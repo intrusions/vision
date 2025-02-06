@@ -28,24 +28,26 @@ bool Socket::client_init(const std::string ip, const uint32_t port)
     return true;
 }
 
-bool Socket::send_game_informations(GameInformations *data)
+bool Socket::send_game_informations(const GameInformations *data)
 {
-    nlohmann::json json;
+    nlohmann::json json = {
+        {"map_name", "mirage"},
+        {"players", nlohmann::json::array()}
+    };
 
-    json["map_name"] = data->map_name;
-    json["players"] = nlohmann::json::array();
+    for (uint8_t player_idx = 0; player_idx < 10; ++player_idx) {
+        Player player = data->players[player_idx];
 
-    for (uint8_t player_idx = 0; player_idx < 10; player_idx++) {
-        nlohmann::json player_json;
-        
-        player_json["name"]         = data->players[player_idx].name;
-        player_json["team"]         = data->players[player_idx].team;
-        player_json["color"]        = data->players[player_idx].color;
-        player_json["is_dead"]      = data->players[player_idx].is_dead;
-        player_json["position_x"]   = data->players[player_idx].position_x;
-        player_json["position_y"]   = data->players[player_idx].position_y;
-
-        json["players"].push_back(player_json);
+        json["players"].push_back({
+            {"name", player.get_name()},
+            {"health", player.get_health()},
+            {"color", player.get_color()},
+            {"position", {
+                {"x", player.get_position().x},
+                {"y", player.get_position().y},
+                {"z", player.get_position().z}
+            }}
+        });
     }
 
     std::string json_str = json.dump();

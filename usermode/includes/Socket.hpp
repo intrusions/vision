@@ -8,7 +8,7 @@
 #include <cstring>
 #include <nlohmann/json.hpp>
 
-#include "Player.hpp"
+#include "GameInformations.hpp"
 
 class Socket
 {
@@ -21,5 +21,5 @@ public:
     virtual ~Socket();
 
     bool client_init(const std::string ip, const uint32_t port);
-    bool send_game_informations(GameInformations *data);
+    bool send_game_informations(const GameInformations *data);
 };

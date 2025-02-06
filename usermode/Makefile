@@ -19,9 +19,11 @@ LDFLAGS :=                              \
     -l:vmm.so                           \
     -lfmt                               \
 
-SRCS :=                 \
-    Socket.cpp          \
-    WebRadar.cpp        \
+SRCS :=                     \
+    Socket.cpp              \
+    WebRadar.cpp            \
+    GameInformations.cpp    \
+    Player.cpp              \
 
 SRCS_OBJS := $(patsubst %.cpp,$(OBJS_DIR)/%.o,$(SRCS))
 
