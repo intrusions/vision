@@ -20,3 +20,14 @@ html, body {
     border: 2px solid #222;
     border-radius: 10px;
 }
+
+.player {
+    font-weight: bold;
+    font-size: 12px;
+    color: white;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    text-shadow: 1px 1px 2px black;
+}

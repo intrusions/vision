@@ -44,14 +44,19 @@ const tcp_server = net.createServer((socket) => {
     console.log("usermode client connected");
 
     socket.on("data", (data) => {
-        const json_data = JSON.parse(data.toString("utf8"));
-
-        if (json_data.map_name !== current_map_name) {
-            current_map_name = json_data.map_name;
-            io.emit("map_update", { map_name: current_map_name });
+        
+        try {
+            const json_data = JSON.parse(data.toString("utf8"));
+            
+            if (json_data.map_name !== current_map_name) {
+                current_map_name = json_data.map_name;
+                io.emit("map_update", { map_name: current_map_name });
+            }
+    
+            io.emit("players_update", json_data.players);
+        } catch (error) {
+            error.message;
         }
-
-        io.emit("players_update", json_data.players);
     });
 
     socket.on("end", () => {

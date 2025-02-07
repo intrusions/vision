@@ -39,6 +39,7 @@ bool Socket::send_game_informations(const GameInformations *data)
         Player player = data->players[player_idx];
 
         json["players"].push_back({
+            {"id", player_idx},
             {"name", player.get_name()},
             {"health", player.get_health()},
             {"color", player.get_color()},
@@ -46,7 +47,9 @@ bool Socket::send_game_informations(const GameInformations *data)
                 {"x", player.get_position().x},
                 {"y", player.get_position().y},
                 {"z", player.get_position().z}
-            }}
+            }},
+            {"is_alive", player.get_is_alive()},
+            {"team", player.get_team()}
         });
     }
 

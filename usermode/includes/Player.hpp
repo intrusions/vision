@@ -26,6 +26,8 @@ private:
     int32_t     health;
     int32_t     color;
     Vec3        position;
+    bool        is_alive;
+    uint8_t     team;
 
 public:
     Player() = default;
@@ -35,9 +37,14 @@ public:
     bool find_player_health(DMA *dma, const uintptr_t cs_player_pawn);
     bool find_player_color(DMA *dma, const uintptr_t player_controller);
     bool find_player_position(DMA *dma, const uintptr_t cs_player_pawn);
+    bool find_player_is_alive(DMA *dma, const uintptr_t player_controller);
+    bool find_player_team(DMA *dma, const uintptr_t cs_player_pawn);
 
     std::string get_name();
     int32_t     get_health();
     int32_t     get_color();
     Vec3        get_position();
+    bool        get_is_alive();
+    uint8_t     get_team();
+
 };

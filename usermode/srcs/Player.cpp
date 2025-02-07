@@ -62,6 +62,32 @@ bool Player::find_player_position(DMA *dma, const uintptr_t cs_player_pawn)
     return true;
 }
 
+bool Player::find_player_is_alive(DMA *dma, const uintptr_t player_controller)
+{
+    bool player_is_alive_tmp;
+    if (!dma->read_process_memory(
+                        player_controller + player_controller::m_bPawnIsAlive,
+                        &player_is_alive_tmp,
+                        sizeof(player_is_alive_tmp)))
+        return false;
+
+    is_alive = player_is_alive_tmp;
+    return true;
+}
+
+bool Player::find_player_team(DMA *dma, const uintptr_t cs_player_pawn)
+{
+    uint8_t player_team_tmp;
+    if (!dma->read_process_memory(
+                        cs_player_pawn + base_entity::m_iTeamNum,
+                        &player_team_tmp,
+                        sizeof(player_team_tmp)))
+        return false;
+
+    team = player_team_tmp;
+    return true;
+}
+
 std::string Player::get_name()
 {
     return name;
@@ -80,4 +106,14 @@ int32_t     Player::get_color()
 Vec3     Player::get_position()
 {
     return position;
+}
+
+bool     Player::get_is_alive()
+{
+    return is_alive;
+}
+
+uint8_t     Player::get_team()
+{
+    return team;
 }

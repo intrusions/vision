@@ -113,6 +113,7 @@ namespace cs2_dumper {
                 constexpr std::ptrdiff_t m_hPlayerPawn = 0x80C;
                 constexpr std::ptrdiff_t m_sSanitizedPlayerName = 0x770;
                 constexpr std::ptrdiff_t m_iCompTeammateColor = 0x758;
+                constexpr std::ptrdiff_t m_bPawnIsAlive = 0x814;
             }
 
             namespace C_BasePlayerPawn {

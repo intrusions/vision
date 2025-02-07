@@ -79,9 +79,15 @@ void WebRadar::run(DMA *dma, Socket *socket)
 
             if (!game.players[player_index - 1].find_player_position(dma, cs_player_pawn))
                 continue ;
+
+            if (!game.players[player_index - 1].find_player_is_alive(dma, player_controller))
+                continue ;
+            
+            if (!game.players[player_index - 1].find_player_team(dma, cs_player_pawn))
+                continue ;
         }
 
         socket->send_game_informations(&game);
-        usleep(100000);
+        usleep(1000000);
     }
 }
