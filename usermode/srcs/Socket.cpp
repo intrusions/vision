@@ -28,10 +28,10 @@ bool Socket::client_init(const std::string ip, const uint32_t port)
     return true;
 }
 
-bool Socket::send_game_informations(const GameInformations *data)
+bool Socket::send_game_informations(const Game *data)
 {
     nlohmann::json json = {
-        {"map_name", "mirage"},
+        {"map_name", data->map_name},
         {"players", nlohmann::json::array()}
     };
 
