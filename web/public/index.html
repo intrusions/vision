@@ -4,14 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>vision</title>
-    <script src="https://cdn.socket.io/4.4.1/socket.io.min.js"></script>
-    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
-    <link rel="stylesheet" href="style.css"/>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div id="map"></div>
 
-    <script src="radar.js"></script>
+    <script type="importmap">
+        {
+            "imports": {
+                "pixi.js": "/modules/pixi.js/dist/pixi.mjs",
+                "socket.io-client": "/modules/socket.io-client/dist/socket.io.esm.min.js"
+            }
+        }
+        </script>
+        <script type="module" src="radar.js"></script>
 </body>
 </html>

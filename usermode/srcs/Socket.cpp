@@ -7,7 +7,7 @@ Socket::~Socket()
     }
 }
 
-bool Socket::client_init(const std::string ip, const uint32_t port)
+bool Socket::connect_to(const std::string ip, const uint32_t port)
 {
     sock = socket(AF_INET, SOCK_STREAM, 0);
     if (sock == -1) {

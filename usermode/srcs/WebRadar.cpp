@@ -31,7 +31,7 @@ void WebRadar::run(DMA *dma, Socket *socket)
             
             uint64_t list_entry;
             if (!dma->read_process_memory(
-                                entity_list + (8LL * (player_index & 0x7FFF) >> 9) + 16,
+                                entity_list + (0x8 * (player_index & 0x7FFF) >> 9) + 16,
                                 &list_entry,
                                 sizeof(list_entry)))
                 continue ;
@@ -87,6 +87,6 @@ void WebRadar::run(DMA *dma, Socket *socket)
         }
 
         socket->send_game_informations(&game);
-        usleep(1000000);
+        usleep(400000);
     }
 }

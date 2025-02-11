@@ -14,8 +14,9 @@ int main(void)
 {
     DMA dma;
     Socket socket;
+    WebRadar webradar;
 
-    if (!socket.client_init("127.0.0.1", 4000)
+    if (!socket.connect_to("127.0.0.1", 4000)
                 || !dma.dma_init()
                 || !dma.process_init("cs2.exe")
                 || !dma.get_module_base_address("client.dll")
@@ -24,7 +25,6 @@ int main(void)
         return EXIT_FAILURE;
     }
 
-    WebRadar webradar;
     webradar.run(&dma, &socket);
 
     return EXIT_SUCCESS;

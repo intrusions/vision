@@ -20,6 +20,6 @@ public:
     Socket() = default;
     virtual ~Socket();
 
-    bool client_init(const std::string ip, const uint32_t port);
+    bool connect_to(const std::string ip, const uint32_t port);
     bool send_game_informations(const Game *data);
 };

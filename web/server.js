@@ -3,71 +3,155 @@ const express = require("express");
 const { Server } = require("socket.io");
 const http = require("http");
 const path = require("path");
+const cors = require("cors");
 
-let current_map_name = "default";
+let currentMapName = "default";
 
-/*
-* @Brief Creat a local web server on port 3000
-* then manage map state.
-*/
 const app = express();
-const web_server = http.createServer(app);
-const io = new Server(
-    web_server,
-    { cors: { origin: "*" } }
-);
+app.use(cors());
+
+const webServer = http.createServer(app);
+const io = new Server(webServer, {
+    cors: {
+        origin: "*",
+        methods: ["GET", "POST"]
+    }
+});
 
 io.on("connection", (socket) => {
-    console.log("web client connected");
-
-    socket.emit("map_update", { map_name: current_map_name });
+    console.log("Web client connected");
+    socket.emit("mapUpdate", { mapName: currentMapName });
 
     socket.on("disconnect", () => {
-        console.log("web client disconnected");
+        console.log("Web client disconnected");
     });
 });
 
-app.use(express.static("public"));
 app.use("/map", express.static(path.join(__dirname, "map")));
+app.use("/modules", express.static(path.join(__dirname, "node_modules")));
+app.use("", express.static(path.join(__dirname, "public")));
 
-web_server.listen(3000, "0.0.0.0", () => {
-    console.log("web server successfully started: http://127.0.0.1:3000");
+webServer.listen(3000, "0.0.0.0", () => {
+    console.log("Web server successfully started: http://127.0.0.1:3000");
 });
 
-
-/*
-* @Brief Creat a local TCP server on port 4000,
-* manage clients connection/disconnection and data reception.
-* This server is used by cheat itself to send players data.
-*/
-const tcp_server = net.createServer((socket) => {
-    console.log("usermode client connected");
+const tcpServer = net.createServer((socket) => {
+    console.log("Usermode client connected");
 
     socket.on("data", (data) => {
-        
         try {
-            const json_data = JSON.parse(data.toString("utf8"));
-            
-            if (json_data.map_name !== current_map_name) {
-                current_map_name = json_data.map_name;
-                io.emit("map_update", { map_name: current_map_name });
+            const jsonData = JSON.parse(data.toString("utf8"));
+            if (jsonData.map_name !== currentMapName) {
+                currentMapName = jsonData.map_name;
+                io.emit("mapUpdate", { mapName: currentMapName });
             }
-    
-            io.emit("players_update", json_data.players);
+            
+            io.emit("playersUpdate", jsonData.players);
         } catch (error) {
-            error.message;
+            console.error("JSON parsing error:", error.message);
         }
     });
 
     socket.on("end", () => {
-        console.log("usermode client disconnected");
+        console.log("Usermode client disconnected");
     });
 
     socket.on("error", (err) => {
-        console.error("socket error:", err.message);
+        console.error("Socket error:", err.message);
     });
 });
 
-tcp_server.listen(4000, "0.0.0.0", () => {
-    console.log("tcp server successfully started: http://127.0.0.1:4000");
+tcpServer.listen(4000, "0.0.0.0", () => {
+    console.log("TCP server successfully started: http://127.0.0.1:4000");
 });
+
+
+
+
+
+
+
+
+
+
+
+// const net = require('net');
+// const express = require('express');
+// const { Server } = require('socket.io');
+// const http = require('http');
+// const path = require('path');
+// const cors = require('cors');
+
+// let currentMapName = 'default';
+// const webClients = new Set();
+
+// const app = express().use(cors());
+// const webServer = http.createServer(app);
+// const io = new Server(webServer, {
+//     cors: {
+//         origin: '*',
+//         methods: ['GET', 'POST']
+//     }
+// });
+
+// app.use('/map', express.static(path.join(__dirname, 'map')));
+// app.use('/modules', express.static(path.join(__dirname, 'node_modules')));
+// app.use('', express.static(path.join(__dirname, 'public')));
+
+// const handleWebSocketConnection = (socket) => {
+//     console.log('Web client connected');
+//     webClients.add(socket);
+
+//     socket.emit('mapUpdate', { mapName: currentMapName });
+
+//     socket.on('disconnect', () => {
+//         console.log('Web client disconnected');
+//         webClients.delete(socket);
+//     });
+
+//     socket.on('error', (error) => {
+//         console.error('Socket.IO error:', error);
+//     });
+// };
+
+// io.on('connection', handleWebSocketConnection);
+
+// const processGameData = (data) => {
+//     try {
+//         const jsonData = JSON.parse(data.toString('utf8'));
+        
+//         if (jsonData.mapName !== currentMapName) {
+//             currentMapName = jsonData.mapName;
+//             io.emit('mapUpdate', { mapName: currentMapName });
+//         }
+            
+//         io.emit('playersUpdate', jsonData.players);
+//     } catch (error) {
+//         console.error('Error processing game data:', error);
+//     }
+// };
+
+// const handleTCPConnection = (socket) => {
+//     console.log('Game client connected');
+
+//     socket.on('data', (data) => processGameData(data));
+
+//     socket.on('end', () => {
+//         console.log('Game client disconnected');
+//     });
+
+//     socket.on('error', (error) => {
+//         console.error('TCP Socket error:', error);
+//     });
+// };
+
+// const TCPServer = net.createServer(handleTCPConnection);
+// TCPServer.listen(4000, '0.0.0.0', () => {
+//     console.log('TCP server started: tcp://127.0.0.1:4000');
+// });
+
+
+// webServer.listen(3000, '0.0.0.0', () => {
+//     console.log('Web server started: http://127.0.0.1:3000');
+// });
+

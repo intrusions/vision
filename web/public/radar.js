@@ -1,142 +1,130 @@
-const socket = io("ws://localhost:3000");
+import { Application, Assets, Sprite, Graphics } from 'pixi.js';
+import { io } from 'socket.io-client';
 
-let map;
-let current_map_name = "";
-let player_markers = {};
+const socket = io("ws://192.168.0.23:3000");
 
-function get_player_position_from_origin(x, y, map_name) {
+let app;
+let currentMap = "";
+let playerSprites = {};
 
-    // ; https://www.unknowncheats.me/forum/counter-strike-2-a/603051-map-radar-images.html
-    const map_config = {
-        "cs_italy":    { xRef: -2647, yRef: 2592, scale: 4.6 },
-        "cs_office":   { xRef: -1838, yRef: 1858, scale: 4.1 },
-        "de_mirage":   { xRef: -3230, yRef: 1713, scale: 5.0 },
-        "de_dust2":    { xRef: -2476, yRef: 3239, scale: 4.4 },
-        "de_inferno":  { xRef: -2087, yRef: 3870, scale: 4.9 },
-        "de_overpass": { xRef: -4831, yRef: 1781, scale: 5.2 },
-        "de_anubis":   { xRef: -2796, yRef: 3328, scale: 5.22 },
-        "de_vertigo":  { xRef: -3168, yRef: 1762, scale: 4 },
-        "de_ancient":  { xRef: -2953, yRef: 2164, scale: 5 },
-        "de_nuke":     { xRef: -3453, yRef: 2887, scale: 7 },
-    };
+const container = document.getElementById("map");
 
-    if (!map_config[map_name]) {
-        return { x: 512, y: 512 };
-    }
+app = new Application();
+await app.init({
+    width: container.clientWidth,
+    height: container.clientHeight,
+    backgroundColor: 0x111111,
+    resolution: window.devicePixelRatio || 1,
+    autoDensity: true,
+});
 
-    const { xRef, yRef, scale } = map_config[map_name];
+container.appendChild(app.canvas);
 
-    let map_x = (x - xRef) / scale;
-    let map_y = (yRef - y) / scale;
+const MAP_CONFIG = {
+    "cs_italy":     { xRef: -2647, yRef: 2592, scale: 4.6 },
+    "cs_office":    { xRef: -1838, yRef: 1858, scale: 4.1 },
+    "de_mirage":    { xRef: -3230, yRef: 1713, scale: 5.0 },
+    "de_dust2":     { xRef: -2476, yRef: 3239, scale: 4.4 },
+    "de_inferno":   { xRef: -2087, yRef: 3870, scale: 4.9 },
+    "de_overpass":  { xRef: -4831, yRef: 1781, scale: 5.2 },
+    "de_anubis":    { xRef: -2796, yRef: 3328, scale: 5.22 },
+    "de_vertigo":   { xRef: -3168, yRef: 1762, scale: 4 },
+    "de_ancient":   { xRef: -2953, yRef: 2164, scale: 5 },
+    "de_nuke":      { xRef: -3453, yRef: 2887, scale: 7 },
+};
 
-    map_y = 1024 - map_y;
-
-    return { x: Math.round(map_x), y: Math.round(map_y) };
+const PLAYER_COLOR = {
+    blue:   0x6ba0dc,
+    purple: 0x7c037e,
+    yellow: 0xfafd06,
+    orange: 0xfe5807,
+    green:  0x04a151,
+    red:    0xff0000
 }
 
-function get_player_color_from_origin(origin_color, origin_team, player_id) {
+function getPlayerPositionFromOrigin(x, y, mapName) {
+    if (!MAP_CONFIG[mapName] || !app.stage.children[0])
+        return { x: 512, y: 512 };
 
-    const blue = "#6ba0dc";
-    const purple = "#7c037e";
-    const yellow = "#fafd06";
-    const orange = "#fe5807";
-    const green = "#04a151";
-    const red = "#f00608";
+    const { xRef, yRef, scale } = MAP_CONFIG[mapName];
 
-    if (player_id === 0) {
-        get_player_color_from_origin.local_team = origin_team;
-    }
+    let mapX = (x - xRef) / scale;
+    let mapY = (yRef - y) / scale;
 
-    if (origin_team !== get_player_color_from_origin.local_team) {
-        return red;
-    }
+    const mapSprite = app.stage.children[0];
+    const scaleFactor = mapSprite.scale.x;
 
-    switch (origin_color) {
-        case 0: return blue;
-        case 1: return green;
-        case 2: return yellow;
-        case 3: return orange;
-        case 4: return purple;
+    mapX = (mapX * scaleFactor) + mapSprite.x;
+    mapY = (mapY * scaleFactor) + mapSprite.y;
+
+    return { x: Math.round(mapX), y: Math.round(mapY) };
+}
+
+function getPlayerColorFromOrigin(originColor, originTeam, playerID) {
+    if (playerID === 0)
+        getPlayerColorFromOrigin.localTeam = originTeam;
+
+    if (originTeam !== getPlayerColorFromOrigin.localTeam)
+        return PLAYER_COLOR.red;
+
+    switch (originColor) {
+        case 0:  return PLAYER_COLOR.blue;
+        case 1:  return PLAYER_COLOR.green;
+        case 2:  return PLAYER_COLOR.yellow;
+        case 3:  return PLAYER_COLOR.orange;
+        case 4:  return PLAYER_COLOR.purple;
         default: return "#ffffff";
     }
 }
 
-socket.on("map_update", (data) => {
-    
-    if (current_map_name !== data.map_name) {
-        current_map_name = data.map_name;
+async function loadMap(mapName) {
+    const texture = await Assets.load(`http://192.168.0.23:3000/map/${mapName}.png`);
 
-        if (map) {
-            Object.values(player_markers).forEach(marker => {
-                if (map.hasLayer(marker)) {
-                    map.removeLayer(marker);
-                }
-            });
+    if (app.stage.children.length > 0) {
+        app.stage.removeChildren();
+    }
 
-            map.eachLayer((layer) => {
-                map.removeLayer(layer);
-            });
+    const mapSprite = new Sprite(texture);
 
-            player_markers = {};
-        } else {
-            map = L.map('map', {
-                crs: L.CRS.Simple,
-                minZoom: -2,
-                maxZoom: 2,
-                zoomControl: false
-            });
-            map.getContainer().style.background = "#111";
-        }
+    const originalWidth = texture.width;
+    const originalHeight = texture.height;
 
-        let bounds = [[0, 0], [1024, 1024]];
-        L.imageOverlay(`/map/${current_map_name}.png`, bounds).addTo(map);
-        map.fitBounds(bounds);
+    const containerWidth = app.renderer.width;
+    const containerHeight = app.renderer.height;
+
+    const scale = Math.min(containerWidth / originalWidth, containerHeight / originalHeight);
+    mapSprite.scale.set(scale);
+
+    mapSprite.x = (containerWidth - originalWidth * scale) / 2;
+    mapSprite.y = (containerHeight - originalHeight * scale) / 2;
+
+    app.stage.addChild(mapSprite);
+}
+
+
+socket.on("mapUpdate", (data) => {
+    console.log(data);
+    if (currentMap !== data.mapName) {
+        currentMap = data.mapName;
+        loadMap(currentMap);
     }
 });
 
-socket.on("players_update", (player_list) => {
-
-    Object.values(player_markers).forEach(marker => {
-        if (map.hasLayer(marker)) {
-            map.removeLayer(marker);
-        }
-    });
-
-    player_markers = {};
-
+socket.on("playersUpdate", (player_list) => {
     player_list.forEach(player => {
-        let { x, y } = get_player_position_from_origin(
-            player.position.x,
-            player.position.y,
-            current_map_name
-        );
+        let { x, y } = getPlayerPositionFromOrigin(player.position.x, player.position.y, currentMap);
+        let color = getPlayerColorFromOrigin(player.color, player.team, player.id);
 
-        if (player.is_alive) {
-            player_markers[player.name] = L.circleMarker([y, x], {
-                radius: 4,
-                color: get_player_color_from_origin(player.color, player.team, player.id),
-                fillOpacity: 1
-            }).addTo(map);
-        } else {
-            player_markers[player.name] = L.marker([y, x], {
-                icon: L.divIcon({
-                    className: "dead-player",
-                    html: `<span style="color: ${get_player_color_from_origin(player.color, player.team, player.id)};">&#10007;</span>`,
-                    iconSize: [20, 20], 
-                    iconAnchor: [7, 7],
-                })
-            }).addTo(map);
+        if (!playerSprites[player.name]) {
+            let playerSprite = new Graphics()
+                .circle(0, 0, 5)
+                .fill(color);
+
+            app.stage.addChild(playerSprite);
+            playerSprites[player.name] = playerSprite;
         }
 
-        player_markers[player.name].bindTooltip(player.name, {
-            permanent: true,
-            direction: "center",
-            offset: [0, -15],
-            className: "player",
-            interactive: false
-        }).openTooltip();
+        playerSprites[player.name].x = x;
+        playerSprites[player.name].y = y;
     });
 });
-
-
-get_player_color_from_origin.local_team = null;
